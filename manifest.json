@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Sender Unread Sorter",
+  "version": "1.0.0",
+  "description": "Ranks senders in your inbox by most unread emails with instant 1-click Quick Filter and batch management.",
+  "author": "Antigravity",
+  "icons": {
+    "32": "icons/icon32.png",
+    "64": "icons/icon64.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "messagesRead",
+    "accountsRead",
+    "mailTabs",
+    "tabs",
+    "storage"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "32": "icons/icon32.png",
+      "64": "icons/icon64.png"
+    },
+    "default_title": "Sort Senders by Unread Emails"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "unread-sender-sorter@addons.thunderbird.net",
+      "strict_min_version": "115.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sender Unread Sorter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="header">
+      <div class="header-main">
+        <div class="header-title-group">
+          <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <div>
+            <h1 class="header-title">Unread Senders</h1>
+            <p id="folder-name" class="header-subtitle">Detecting folder...</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="btn-sort-author" class="btn-icon" title="Sort Inbox by Author" aria-label="Sort Inbox by Author">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M7 12h10M10 18h4"></path>
+            </svg>
+          </button>
+          <button id="btn-refresh" class="btn-icon" title="Rescan and refresh folder" aria-label="Refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6"></path>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+          </button>
+          <button id="btn-open-tab" class="btn-icon" title="Open in separate tab" aria-label="Open in Tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary Stats Bar -->
+      <div id="stats-bar" class="stats-bar">
+        <div class="stat-pill">
+          <span class="stat-label">Senders:</span>
+          <span id="stat-senders" class="stat-value">0</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">Unread Emails:</span>
+          <span id="stat-unread" class="stat-value">0</span>
+        </div>
+        <div class="stat-pill folder-toggle-pill" id="folder-pill" title="Click to refresh current folder">
+          <span id="stat-folder" class="stat-value-folder">Current Folder</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <!-- Loading State -->
+      <div id="loading-state" class="state-message">
+        <div class="spinner"></div>
+        <p>Scanning unread emails and ranking senders...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="state-message hidden">
+        <svg class="state-icon success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <h3>Inbox Zero!</h3>
+        <p>No unread emails found in this folder.</p>
+        <button id="btn-rescan-empty" class="btn-primary">Scan Again</button>
+      </div>
+
+      <!-- Non-Mail Tab State -->
+      <div id="non-mail-state" class="state-message hidden">
+        <svg class="state-icon mail-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+          <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+        <h3>Inbox Tab Required</h3>
+        <p>Please switch to your Inbox or mail folder tab to view and sort unread senders.</p>
+        <button id="btn-switch-inbox" class="btn-primary">Go to Inbox</button>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-state" class="state-message hidden">
+        <svg class="state-icon error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <h3>Something went wrong</h3>
+        <p id="error-message">Could not load folder messages.</p>
+        <button id="btn-retry" class="btn-primary">Retry</button>
+      </div>
+
+      <!-- All Senders List -->
+      <ul id="sender-list" class="sender-list hidden">
+        <!-- Rendered dynamically by popup.js -->
+      </ul>
+
+    </main>
+
+    <!-- Footer Feedback Banner -->
+    <footer id="feedback-banner" class="feedback-banner hidden">
+      <span id="feedback-text">Feedback message</span>
+    </footer>
+  </div>
+
+  <!-- HTML Templates for Safe, XSS-Immune DOM Construction -->
+  <template id="sender-card-template">
+    <div class="sender-card-top">
+      <div class="sender-identity">
+        <span class="rank-badge"></span>
+        <div class="sender-names">
+          <div class="sender-display-name"></div>
+          <div class="sender-email"></div>
+        </div>
+      </div>
+      <div class="unread-count-pill">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+        <span class="unread-count-text"></span>
+      </div>
+    </div>
+
+    <div class="sender-snippet">
+      <span class="snippet-subject"></span>
+      <span class="snippet-date"></span>
+    </div>
+
+    <div class="sender-card-actions">
+      <div class="unsub-action-slot"></div>
+
+      <button class="btn-action btn-action-select" data-action="select">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span class="btn-select-text"></span>
+      </button>
+    </div>
+  </template>
+
+
+  <script src="core.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

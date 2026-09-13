@@ -1,0 +1,20 @@
+{
+  "name": "thunderbird-unread-sender-sorter",
+  "version": "1.0.0",
+  "description": "Mozilla Thunderbird extension that ranks senders by unread email volume with 1-click unsubscribe",
+  "scripts": {
+    "test": "node --test tests/**/*.test.js",
+    "lint": "npx addons-linter unread-sender-sorter.xpi",
+    "build": "python build.py"
+  },
+  "keywords": [
+    "thunderbird",
+    "mailextension",
+    "inbox",
+    "sort",
+    "unread",
+    "unsubscribe"
+  ],
+  "author": "Antigravity",
+  "license": "MIT"
+}
